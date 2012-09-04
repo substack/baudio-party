@@ -58,72 +58,81 @@ for (var i = 0; i < argv.channels; i++) (function (i) {
     save(i, 'return ' + function () { return 0 });
 })(i);
 
-var server = http.createServer(function (req, res) {
-    if (req.method === 'GET' && req.url === '/') {
-        res.end(JSON.stringify(
-            sources.reduce(function (acc, src, ix) {
-                acc[ix] = String(src);
-                return acc;
-            }, {}),
-            null, 
-            2
-        ) + '\n');
+var server = http.createServer();
+
+server.on('request', function (req, res) {
+    if (req.method !== 'GET' || req.url !== '/channels') return;
+    res.end(JSON.stringify(
+        sources.reduce(function (acc, src, ix) {
+            acc[ix] = String(src);
+            return acc;
+        }, {}),
+        null, 
+        2
+    ) + '\n');
+});
+
+server.on('request', function (req, res) {
+    if (req.method !== 'GET' || !/^\/(\d+)/.test(req.url)) return;
+    var ch = Number(req.url.slice(1));
+    res.setHeader('content-type', 'text/javascript');
+    res.end(String(sources[ch]));
+});
+
+server.on('request', function (req, res) {
+    if (req.method !== 'POST') return;
+    var ch = Number(req.url.split('/')[1]);
+    if (!channels[ch]) {
+        res.statusCode = 400;
+        res.end('no such channel ' + ch + '\n');
+        return;
     }
-    else if (req.method === 'GET') {
-        var ch = Number(req.url.slice(1));
-        res.setHeader('content-type', 'text/javascript');
-        res.end(String(sources[ch]));
-    }
-    else if (req.method === 'POST') {
-        var ch = Number(req.url.split('/')[1]);
-        if (!channels[ch]) {
-            res.statusCode = 400;
-            res.end('no such channel ' + ch + '\n');
-            return;
+    
+    var data = '';
+    req.on('data', function (buf) { data += buf });
+    
+    req.on('end', function () {
+        var params = qs.parse(data);
+        
+        if (params.volume) {
+            volumes[ch] = Number(params.volume);
+            res.end('set volume to ' + volumes[ch] + '\n');
         }
-        
-        var data = '';
-        req.on('data', function (buf) { data += buf });
-        
-        req.on('end', function () {
-            var params = qs.parse(data);
-            
-            if (params.volume) {
-                volumes[ch] = Number(params.volume);
-                res.end('set volume to ' + volumes[ch] + '\n');
-            }
-            else res.end('unknown parameters specified\n')
-        });
-    }
-    else if (req.method === 'PUT') {
-        var ch = Number(req.url.slice(1));
-        
-        var src = '';
-        req.on('data', function (buf) { src += buf });
-        req.on('end', function () {
-            save(ch, src, function (err) {
-                if (err) {
-                    res.statusCode = 400;
-                    res.end(String(err));
-                    return;
-                }
-                res.end('created audio channel ' + ch + '\n');
-            });
-        });
-    }
-    else if (req.method === 'DELETE') {
-        var ch = Number(req.url.slice(1));
-        if (!channels[ch]) {
-            res.statusCode = 404;
-            res.end('channel ' + ch + ' not available\n');
-            return;
-        }
-        var src = 'return ' + function () { return 0 };
+        else res.end('unknown parameters specified\n')
+    });
+});
+
+server.on('request', function (req, res) {
+    if (req.method !== 'PUT') return;
+    var ch = Number(req.url.slice(1));
+    
+    var src = '';
+    req.on('data', function (buf) { src += buf });
+    req.on('end', function () {
         save(ch, src, function (err) {
-            if (err) res.end(err)
-            else res.end('deleted channel ' + ch + '\n')
+            if (err) {
+                res.statusCode = 400;
+                res.end(String(err));
+                return;
+            }
+            res.end('created audio channel ' + ch + '\n');
         });
+    });
+});
+
+server.on('request', function (req, res) {
+    if (req.method !== 'DELETE') return;
+    var ch = Number(req.url.slice(1));
+    if (!channels[ch]) {
+        res.statusCode = 404;
+        res.end('channel ' + ch + ' not available\n');
+        return;
     }
+    var src = 'return ' + function () { return 0 };
+    save(ch, src, function (err) {
+        if (err) res.end(err)
+        else res.end('deleted channel ' + ch + '\n')
+    });
 });
 
 var port = argv.port || 5000;
