@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var baudio = require('baudio');
 var http = require('http');
 var spawn = require('child_process').spawn;
