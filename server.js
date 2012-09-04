@@ -5,7 +5,7 @@ var argv = require('optimist')
     .alias('channels', 'c')
     .default('channels', 8)
     .alias('rate', 'r')
-    .default('rate', 22050)
+    .default('rate', 8000)
     .argv
 ;
 var fs = require('fs');
@@ -16,10 +16,34 @@ if (argv.h || argv.help) {
 }
 
 var vm = require('vm');
+var deepFreeze = require('deep-freeze');
+var clone = require('clone');
+
+var context = deepFreeze(clone({
+    Buffer : Buffer
+}));
+
 var baudio = require('baudio');
 
 var b = baudio({ rate : argv.rate });
+
 var channels = [];
+var sources = [];
+function save (src) {
+    try {
+        var fn = vm.runInNewContext(
+            '(function () {' + src + '})()',
+            context
+        );
+    }
+    catch (err) {
+        res.statusCode = 400;
+        res.end(String(err));
+    }
+    channels.push();
+    channels[ch] = fn;
+}
+
 for (var i = 0; i < argv.channels; i++) (function (i) {
     b.push(function () {
         return channels[i].apply(this, arguments);
@@ -51,7 +75,8 @@ var server = http.createServer(function (req, res) {
         req.on('end', function () {
             try {
                 var fn = vm.runInNewContext(
-                    '(function () {' + src + '})()'
+                    '(function () {' + src + '})()',
+                    context
                 );
             }
             catch (err) {
