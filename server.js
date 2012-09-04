@@ -1,6 +1,8 @@
 var baudio = require('baudio');
 var http = require('http');
 var spawn = require('child_process').spawn;
+var qs = require('querystring');
+
 var argv = require('optimist')
     .alias('channels', 'c')
     .default('channels', 8)
@@ -29,6 +31,8 @@ var b = baudio({ rate : argv.rate });
 
 var channels = [];
 var sources = [];
+var volumes = [];
+
 function save (ch, src, cb) {
     if (!cb) cb = function () {};
     
@@ -43,12 +47,13 @@ function save (ch, src, cb) {
     }
     channels[ch] = fn;
     sources[ch] = src;
+    if (!volumes[ch]) volumes[ch] = 1.0;
     cb();
 }
 
 for (var i = 0; i < argv.channels; i++) (function (i) {
     b.push(function () {
-        return channels[i].apply(this, arguments);
+        return volumes[i] * channels[i].apply(this, arguments);
     });
     save(i, 'return ' + function () { return 0 });
 })(i);
@@ -69,7 +74,28 @@ var server = http.createServer(function (req, res) {
         res.setHeader('content-type', 'text/javascript');
         res.end(String(sources[ch]));
     }
-    if (req.method === 'PUT') {
+    else if (req.method === 'POST') {
+        var ch = Number(req.url.split('/')[1]);
+        if (!channels[ch]) {
+            res.statusCode = 400;
+            res.end('no such channel ' + ch + '\n');
+            return;
+        }
+        
+        var data = '';
+        req.on('data', function (buf) { data += buf });
+        
+        req.on('end', function () {
+            var params = qs.parse(data);
+            
+            if (params.volume) {
+                volumes[ch] = Number(params.volume);
+                res.end('set volume to ' + volumes[ch] + '\n');
+            }
+            else res.end('unknown parameters specified\n')
+        });
+    }
+    else if (req.method === 'PUT') {
         var ch = Number(req.url.slice(1));
         
         var src = '';

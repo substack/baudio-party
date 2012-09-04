@@ -67,6 +67,12 @@ $ curl -X DELETE http://localhost:5000/3
 deleted channel 3
 ```
 
+To adjust the volume of a channel, send a POST:
+
+```
+$ curl -X POST -d volume=0.5 http://localhost:5000/3
+```
+
 # usage
 
 ```
