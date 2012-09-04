@@ -1,6 +1,6 @@
 {
     "name" : "baudio-party",
-    "version" : "0.0.4",
+    "version" : "0.0.5",
     "description" : "javascript music party http server",
     "bin" : {
         "baudio-party" : "server.js"
@@ -12,7 +12,8 @@
         "optimist" : "~0.3.4",
         "baudio" : "~0.1.3",
         "clone" : "~0.1.1",
-        "deep-freeze" : "~0.0.1"
+        "deep-freeze" : "~0.0.1",
+        "filed" : "~0.0.7"
     },
     "repository" : {
         "type" : "git",

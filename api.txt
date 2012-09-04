@@ -1,0 +1,24 @@
+Upload a javascript snippet to a track with PUT:
+
+    $ curl -sST example/baseline.js http://localhost:5000/3
+    created audio channel 3
+
+Read the source for a track with a GET:
+
+    $ curl http://localhost:5000/3
+    function (t, i) {
+        var f = 800 * Math.pow(2, Math.floor(t * 4 % 4) / 6);
+        return Math.sin(t * f * Math.PI)
+            * Math.pow(Math.sin(t * 8 * Math.PI), 2)
+        ;
+    }
+
+To reset a track back to `return 0`, send a DELETE:
+
+    $ curl -X DELETE http://localhost:5000/3
+    deleted channel 3
+
+To adjust the volume of a channel, send a POST:
+
+    $ curl -X POST -d volume=0.5 http://localhost:5000/3
+

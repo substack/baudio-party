@@ -4,6 +4,7 @@ var baudio = require('baudio');
 var http = require('http');
 var spawn = require('child_process').spawn;
 var qs = require('querystring');
+var filed = require('filed');
 
 var argv = require('optimist')
     .alias('channels', 'c')
@@ -61,6 +62,27 @@ for (var i = 0; i < argv.channels; i++) (function (i) {
 })(i);
 
 var server = http.createServer();
+
+server.on('request', function (req, res) {
+    if (req.method === 'GET' && req.url === '/') {
+        res.write('# channels\n\n');
+        res.write(JSON.stringify(sources.reduce(function (acc, src, id) {
+            acc[id] = src === 'return function () { return 0 }'
+                ? '[empty]'
+                : '[...]'
+            ;
+            return acc;
+        }, {}), null, 2) + '\n\n');
+        
+        fs.createReadStream(__dirname + '/api.txt').pipe(res);
+    }
+});
+
+server.on('request', function (req, res) {
+    if (req.method === 'GET' && req.url === '/readme') {
+        filed(__dirname + '/readme.markdown').pipe(res);
+    }
+});
 
 server.on('request', function (req, res) {
     if (req.method !== 'GET' || req.url !== '/channels') return;
