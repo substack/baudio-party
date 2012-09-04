@@ -1,0 +1,32 @@
+{
+    "name" : "baudio-party",
+    "version" : "0.0.0",
+    "description" : "javascript music party http server",
+    "bin" : {
+        "baudio-party" : "server.js"
+    },
+    "directories" : {
+        "example" : "example"
+    },
+    "dependencies" : {
+        "optimist" : "~0.3.4",
+        "baudio" : "~0.1.3"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/baudio-party.git"
+    },
+    "homepage" : "https://github.com/substack/baudio-party",
+    "keywords" : [
+        "music",
+        "audio",
+        "baudio",
+        "party"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT"
+}
