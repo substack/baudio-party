@@ -1,0 +1,10 @@
+usage : baudio-party
+
+  -c, --channels   number of channels to use, default 8
+  
+  -r, --rate       bit rate to use, default 22050
+  
+  --port=PORT      port to listen on, default 5000
+  
+  -o FILE          record the audio stream to a file
+

@@ -8,6 +8,12 @@ var argv = require('optimist')
     .default('rate', 22050)
     .argv
 ;
+var fs = require('fs');
+if (argv.h || argv.help) {
+    return fs.createReadStream(__dirname + '/usage.txt')
+        .pipe(process.stdout)
+    ;
+}
 
 var vm = require('vm');
 var baudio = require('baudio');
