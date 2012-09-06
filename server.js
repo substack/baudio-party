@@ -33,8 +33,6 @@ var baudio = require('baudio');
 var b = baudio({ rate : argv.rate });
 
 var channels = [];
-var sources = [];
-var volumes = [];
 
 function save (ch, src, cb) {
     if (!cb) cb = function () {};
@@ -48,15 +46,16 @@ function save (ch, src, cb) {
     catch (err) {
         return cb(String(err));
     }
-    channels[ch] = fn;
-    sources[ch] = src;
-    if (!volumes[ch]) volumes[ch] = 1.0;
+    if (!channels[ch]) channels[ch] = {};
+    channels[ch].cb = fn;
+    channels[ch].source = src;
+    if (!channels[ch].volume) channels[ch].volume = 1.0;
     cb();
 }
 
 for (var i = 0; i < argv.channels; i++) (function (i) {
     b.push(function () {
-        return volumes[i] * channels[i].apply(this, arguments);
+        return channels[i].volume * channels[i].cb.apply(this, arguments);
     });
     save(i, 'return ' + function () { return 0 });
 })(i);
@@ -66,8 +65,8 @@ var server = http.createServer();
 server.on('request', function (req, res) {
     if (req.method === 'GET' && req.url === '/') {
         res.write('# channels\n\n');
-        res.write(JSON.stringify(sources.reduce(function (acc, src, id) {
-            acc[id] = src === 'return function () { return 0 }'
+        res.write(JSON.stringify(channels.reduce(function (acc, ch, id) {
+            acc[id] = ch.source === 'return function () { return 0 }'
                 ? '[empty]'
                 : '[...]'
             ;
@@ -87,8 +86,8 @@ server.on('request', function (req, res) {
 server.on('request', function (req, res) {
     if (req.method !== 'GET' || req.url !== '/channels') return;
     res.end(JSON.stringify(
-        sources.reduce(function (acc, src, ix) {
-            acc[ix] = String(src);
+        channels.reduce(function (acc, ch, ix) {
+            acc[ix] = String(ch.source);
             return acc;
         }, {}),
         null, 
@@ -100,7 +99,7 @@ server.on('request', function (req, res) {
     if (req.method !== 'GET' || !/^\/(\d+)/.test(req.url)) return;
     var ch = Number(req.url.slice(1));
     res.setHeader('content-type', 'text/javascript');
-    res.end(String(sources[ch]));
+    res.end(String(channels[ch].source));
 });
 
 server.on('request', function (req, res) {
@@ -119,8 +118,8 @@ server.on('request', function (req, res) {
         var params = qs.parse(data);
         
         if (params.volume) {
-            volumes[ch] = Number(params.volume);
-            res.end('set volume to ' + volumes[ch] + '\n');
+            channels[ch].volume = Number(params.volume);
+            res.end('set volume to ' + channels[ch].volume + '\n');
         }
         else res.end('unknown parameters specified\n')
     });
