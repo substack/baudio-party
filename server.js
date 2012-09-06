@@ -50,12 +50,14 @@ function save (ch, src, cb) {
     channels[ch].cb = fn;
     channels[ch].source = src;
     if (!channels[ch].volume) channels[ch].volume = 1.0;
+    if (!channels[ch].offset) channels[ch].offset = 0;
     cb();
 }
 
 for (var i = 0; i < argv.channels; i++) (function (i) {
-    b.push(function () {
-        return channels[i].volume * channels[i].cb.apply(this, arguments);
+    b.push(function (t, counter) {
+        var to = (channels[i].offset || 0) + t;
+        return channels[i].volume * channels[i].cb.call(this, to, counter);
     });
     save(i, 'return ' + function () { return 0 });
 })(i);
@@ -117,11 +119,22 @@ server.on('request', function (req, res) {
     req.on('end', function () {
         var params = qs.parse(data);
         
+        var matched = false;
+        
         if (params.volume) {
             channels[ch].volume = Number(params.volume);
-            res.end('set volume to ' + channels[ch].volume + '\n');
+            res.write('set volume to ' + channels[ch].volume + '\n');
+            matched = true;
         }
-        else res.end('unknown parameters specified\n')
+        
+        if (params.offset) {
+            channels[ch].offset = Number(params.offset);
+            res.write('set offset to ' + channels[ch].offset + '\n');
+            matched = true;
+        }
+        
+        if (!matched) res.end('unknown parameters specified\n')
+        else res.end()
     });
 });
 

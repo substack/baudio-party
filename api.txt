@@ -22,3 +22,7 @@ To adjust the volume of a channel, send a POST:
 
     $ curl -X POST -d volume=0.5 http://localhost:5000/3
 
+To adjust the offset of a channel, send a POST:
+
+    $ curl -X POST -d offset=120 http://localhost:5000/3
+

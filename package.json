@@ -1,6 +1,6 @@
 {
     "name" : "baudio-party",
-    "version" : "0.0.5",
+    "version" : "0.0.6",
     "description" : "javascript music party http server",
     "bin" : {
         "baudio-party" : "server.js"
