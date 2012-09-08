@@ -66,6 +66,10 @@ for (var i = 0; i < argv.channels; i++) (function (i) {
 var server = http.createServer();
 
 server.on('request', function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+});
+
+server.on('request', function (req, res) {
     if (req.method === 'GET' && req.url === '/') {
         res.write('# channels\n\n');
         res.write(JSON.stringify(channels.reduce(function (acc, ch, id) {
