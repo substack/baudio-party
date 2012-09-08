@@ -67,6 +67,13 @@ var server = http.createServer();
 
 server.on('request', function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, DELETE, OPTIONS'
+    );
+    if (req.method === 'OPTIONS') {
+        res.end();
+    }
 });
 
 server.on('request', function (req, res) {
@@ -181,7 +188,7 @@ var port = argv.port || 5000;
 console.log('http://localhost:' + port);
 server.listen(port);
 
-var ps = b.play({ buffer : 512 });
+var ps = b.play({ buffer : 256 });
 ps.stdout.pipe(process.stdout, { end : false });
 ps.stderr.pipe(process.stderr, { end : false });
 
