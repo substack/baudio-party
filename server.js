@@ -57,6 +57,7 @@ function save (ch, src, cb) {
 for (var i = 0; i < argv.channels; i++) (function (i) {
     b.push(function (t, counter) {
         var to = (channels[i].offset || 0) + t;
+        channels[i].t = t;
         return channels[i].volume * channels[i].cb.call(this, to, counter);
     });
     save(i, 'return ' + function () { return 0 });
@@ -128,8 +129,9 @@ server.on('request', function (req, res) {
         }
         
         if (params.offset) {
-            channels[ch].offset = Number(params.offset);
-            res.write('set offset to ' + channels[ch].offset + '\n');
+            var offset = Number(params.offset);
+            channels[ch].offset = offset - channels[ch].t;
+            res.write('set offset to ' + offset + '\n');
             matched = true;
         }
         
