@@ -79,6 +79,30 @@ To adjust the offset of a channel, send a POST:
 $ curl -X POST -d offset=120 http://localhost:5000/3
 ```
 
+# scripts
+
+Your script should return a `function (t, i) {}` that itself returns an
+amplitude float from `-1` to `1`, inclusive. Values outside this range are
+clipped to the maximum and minimum values by baudio.
+
+## Buffer
+
+Your scripts can use a frozen version of the core node buffer library. This is
+useful for sampling base64-encoded tracks.
+
+## require()
+
+You can `require()` modules in the server `process.cwd()` or higher.
+
+## require('baudio')
+
+When you `require('baudio')` you get the server parameters instead of the baudio
+module. The server parameters are:
+
+* rate
+* size
+* channels
+
 # usage
 
 ```
