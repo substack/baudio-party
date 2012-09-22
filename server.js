@@ -27,6 +27,14 @@ var clone = require('clone');
 var context = deepFreeze(clone({
     Buffer : Buffer,
     require : function (pkg) {
+        if (pkg === 'baudio') {
+            return {
+                rate : b.rate,
+                size : b.size,
+                channels : b.channels
+            }
+        }
+        
         var s = require.resolve(pkg);
         var cwd = process.cwd() + '/';
         if (s.slice(0, cwd.length) !== cwd) {
