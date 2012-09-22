@@ -25,7 +25,15 @@ var deepFreeze = require('deep-freeze');
 var clone = require('clone');
 
 var context = deepFreeze(clone({
-    Buffer : Buffer
+    Buffer : Buffer,
+    require : function (pkg) {
+        var s = require.resolve(pkg);
+        var cwd = process.cwd() + '/';
+        if (s.slice(0, cwd.length) !== cwd) {
+            throw new Error('access denied to fetch package: ' + pkg);
+        }
+        return require(s);
+    }
 }));
 
 var baudio = require('baudio');
