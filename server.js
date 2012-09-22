@@ -58,7 +58,15 @@ for (var i = 0; i < argv.channels; i++) (function (i) {
     b.push(function (t, counter) {
         var to = (channels[i].offset || 0) + t;
         channels[i].t = t;
-        return channels[i].volume * channels[i].cb.call(this, to, counter);
+        
+        var res;
+        try {
+            res = channels[i].cb.call(this, to, counter);
+        }
+        catch (err) {
+            console.error(err);
+        }
+        return channels[i].volume * res;
     });
     save(i, 'return ' + function () { return 0 });
 })(i);
